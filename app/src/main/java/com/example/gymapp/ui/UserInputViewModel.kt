@@ -2,15 +2,11 @@ package com.example.gymapp.ui
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.gymapp.data.UserDataUiEvents
 import com.example.gymapp.data.UserInputScreenState
-import com.example.gymapp.data.model.User
-import com.example.gymapp.data.repository.GymRepository
-import kotlinx.coroutines.launch
 
 
-class UserInputViewModel(private val gymRepository : GymRepository) : ViewModel() {
+class UserInputViewModel : ViewModel() {
 
     companion object {
         const val TAG = "UserInputViewModel"
@@ -34,11 +30,6 @@ class UserInputViewModel(private val gymRepository : GymRepository) : ViewModel(
                 )
 
             }
-        }
-    }
-    fun insertUser() {
-        viewModelScope.launch {
-            gymRepository.insertUser(User(uiState.value.nameEntered, uiState.value.passwordSelected))
         }
     }
 

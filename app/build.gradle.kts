@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id("kotlin-kapt") }
+}
 
 android {
     namespace = "com.example.gymapp"
@@ -60,11 +60,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
-    // Room dependencies
-    implementation("androidx.room:room-runtime:2.4.3")
-    kapt("androidx.room:room-compiler:2.4.3")
-    implementation("androidx.room:room-ktx:2.4.3")
-
     implementation(libs.androidx.material3)
     implementation(libs.androidx.constraintlayout.core)
     testImplementation(libs.junit)
