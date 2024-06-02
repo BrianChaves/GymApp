@@ -30,7 +30,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-
 fun getExercisesForDay(context: Context, dayOfWeek: Int, username: String): List<Exercise> {
     val dbHelper = AdminOpenHelper(context, "gymDB", null, 1)
     val exercisesList : List<Exercise> = dbHelper.getExerciseListForTraining(dayOfWeek, username)
@@ -38,9 +37,11 @@ fun getExercisesForDay(context: Context, dayOfWeek: Int, username: String): List
 }
 
 @Composable
-fun TrainingsScreen(username: String, navController: NavController) {
+fun TrainingsScreen() {
     var selectedDate by remember { mutableStateOf("") }
     var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
+    var dayOfWeek by remember { mutableStateOf(0) }
+    val username = Routes.USER_NAME
     val context = LocalContext.current
 
     val calendar = Calendar.getInstance()
@@ -54,8 +55,7 @@ fun TrainingsScreen(username: String, navController: NavController) {
             val selectedCalendar = Calendar.getInstance()
             selectedCalendar.set(selectedYear, selectedMonth, selectedDay)
             selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedCalendar.time)
-            val dayOfWeek = selectedCalendar.get(Calendar.DAY_OF_WEEK)
-            exercises = getExercisesForDay(context, dayOfWeek, username)
+            dayOfWeek = selectedCalendar.get(Calendar.DAY_OF_WEEK)
         }, year, month, day
     )
 
@@ -65,8 +65,8 @@ fun TrainingsScreen(username: String, navController: NavController) {
             .padding(16.dp)
     ) {
         Text(
-            text = if (selectedDate.isEmpty()) "Select a date" else "Selected date: $selectedDate",
-            style = MaterialTheme.typography.headlineMedium,
+            text = if (selectedDate.isEmpty()) "Seleccione la fecha deseada" else "Fecha: $selectedDate",
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
@@ -74,7 +74,10 @@ fun TrainingsScreen(username: String, navController: NavController) {
         )
 
         Button(
-            onClick = { datePickerDialog.show() },
+            onClick = {
+                datePickerDialog.show()
+//                exercises = getExercisesForDay(context, dayOfWeek, username)
+                      },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text("Pick a date")

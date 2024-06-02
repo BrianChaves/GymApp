@@ -5,6 +5,7 @@ import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import com.example.gymapp.data.Exercise
 import com.example.gymapp.data.Training
 import com.example.gymapp.data.User
@@ -21,18 +22,18 @@ class AdminOpenHelper(
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "nombre TEXT NOT NULL, " +
                 "usuario TEXT NOT NULL UNIQUE, " +
-                "contrasena TEXT NOT NULL)");
-        db?.execSQL("CREATE TABLE ejercicios(" +
+                "contrasena TEXT NOT NULL)")
+        db?.execSQL("CREATE TABLE ejercicios (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "nombre TEXT NOT NULL UNIQUE, " +
                 "tipo TEXT)")
-        db?.execSQL("CREATE TABLE entrenamientos(" +
+        db?.execSQL("CREATE TABLE entrenamientos (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "dia INTEGER NOT NULL, " +
                 "usuario TEXT NOT NULL, " +
                 "lista_ejercicios TEXT, " +
                 "FOREIGN KEY (usuario) REFERENCES usuarios (usuario))")
-        db?.execSQL("CREATE TABLE records(" +
+        db?.execSQL("CREATE TABLE records (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "ejercicio INTEGER NOT NULL, " +
                 "record TEXT," +
@@ -44,6 +45,8 @@ class AdminOpenHelper(
         admin.put("usuario", "admin")
         admin.put("contrasena", "123") // Replace with a secure hashing mechanism
         db!!.insert("usuarios", null, admin)
+
+        generateTrainingsByUser("admin")
 
         loadUsers()
         loadExercises()
@@ -63,7 +66,7 @@ class AdminOpenHelper(
         return exists
     }
 
-    fun insertUser(user : User) : Long {
+    private fun insertUser(user : User) {
         val db = this.writableDatabase
         val contentValues = ContentValues()
 
@@ -72,10 +75,11 @@ class AdminOpenHelper(
         contentValues.put("usuario", user.username)
         contentValues.put("contrasena", user.password)
 
-        return db.insertWithOnConflict("usuarios", null, contentValues, SQLiteDatabase.CONFLICT_REPLACE)
+        db!!.insert("usuarios", null, contentValues)
+        db.close()
     }
 
-    fun insertExercise(exercise: Exercise): Long {
+    private fun insertExercise(exercise: Exercise) {
         val db = this.writableDatabase
         val contentValues = ContentValues()
 
@@ -83,7 +87,8 @@ class AdminOpenHelper(
         contentValues.put("nombre", exercise.exerciseName)
         contentValues.put("tipo", exercise.type)
 
-        return db.insertWithOnConflict("ejercicios", null, contentValues, SQLiteDatabase.CONFLICT_REPLACE)
+        db!!.insert("ejercicios", null, contentValues)
+        db.close()
     }
 
     fun getExerciseById(exerciseId: Int) : Exercise {
@@ -126,49 +131,74 @@ class AdminOpenHelper(
         return list
     }
 
-    fun insertTraining(training: Training): Long {
+    private fun insertTraining(training: Training) {
         val db = this.writableDatabase
         val contentValues = ContentValues()
-        val gson = Gson()
-        val jsonIntList = gson.toJson(training.exercises)
+        val jsonIntList = Gson().toJson(training.exercises)
 
 //        contentValues.put("id", training.trainingId)
         contentValues.put("dia", training.dayOfWeek)
         contentValues.put("usuario", training.username)
         contentValues.put("lista_ejercicios", jsonIntList)
 
-        return db.insertWithOnConflict("entrenamientos", null, contentValues, SQLiteDatabase.CONFLICT_REPLACE)
+        db!!.insert("entrenamientos", null, contentValues)
+        db.close()
     }
 
-    private fun getColumnList(dayOfWeek: Int, userId: String): List<Int>? {
-        val columnaListaEjercicios = "lista_ejercicios"
+    private fun getColumnList(dayOfWeek: Int, userId: String): List<Int> {
         val db = this.readableDatabase
         val cursor = db.query(
             "entrenamientos",
-            arrayOf(columnaListaEjercicios),
+            arrayOf("lista_ejercicios"),
             "dia = ? AND usuario = ?",
             arrayOf(dayOfWeek.toString(), userId),
             null, null, null
         )
 
-        var intList: List<Int>? = null
+        var intList: List<Int> = mutableListOf()
         if (cursor.moveToFirst()) {
-            val jsonIntList = cursor.getString(cursor.getColumnIndexOrThrow("lista_ejercicios"))
-            val gson = Gson()
-            intList = gson.fromJson(jsonIntList, Array<Int>::class.java).toList()
+            val jsonIntList = cursor.getString(
+                cursor.getColumnIndexOrThrow("lista_ejercicios")
+            )
+            intList = Gson().fromJson(jsonIntList, Array<Int>::class.java).toList()
         }
         cursor.close()
+        db.close()
         return intList
     }
 
     fun getExerciseListForTraining(dayOfWeek: Int, userId: String): List<Exercise> {
-        val intList : List<Int>? = getColumnList(dayOfWeek, userId)
+        val intList : List<Int> = getColumnList(dayOfWeek, userId)
         val exercises = mutableListOf<Exercise>()
 
-        if (intList != null) {
-            for (ints in intList) { exercises.add(getExerciseById(ints)) }
-        }
+        for (ints in intList) { exercises.add(getExerciseById(ints)) }
         return exercises
+    }
+
+    fun getAllTrainings() : List<Training> {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM ejercicios", null)
+        val list = mutableListOf<Training>()
+//        val exerciseIdList = mutableListOf<Int>()
+        val training = Training(0, 0, "", emptyList())
+
+        try {
+            if (cursor.moveToFirst()) {
+                while (cursor.moveToNext()) {
+                    training.trainingId = cursor.getInt(0)
+                    training.dayOfWeek = cursor.getInt(1)
+                    training.username = cursor.getString(2)
+                    training.exercises = getColumnList(training.dayOfWeek, training.username)
+                    list.add(training)
+                }
+            }
+            cursor.close()
+        } catch (_: SQLException) {
+
+        }
+        db.close()
+
+        return list
     }
 
     private fun loadExercises() {
@@ -255,7 +285,9 @@ class AdminOpenHelper(
             Exercise(70, "Plyo Push-Up", "Strength")
 
         )
-        for(exercise in list) { insertExercise(exercise) }
+        for(exercise in list) {
+            insertExercise(exercise)
+        }
     }
 
     private fun loadUsers() {

@@ -51,7 +51,7 @@ fun UserInputScreen(
 
             Spacer(modifier = Modifier.size(20.dp))
 
-            TextComponent(textValue = "Contreña", textSize = 18.sp)
+            TextComponent(textValue = "Contraseña", textSize = 18.sp)
             Spacer(modifier = Modifier.size(10.dp))
 
             TextFieldPasswordComponent(onTextChanged = {

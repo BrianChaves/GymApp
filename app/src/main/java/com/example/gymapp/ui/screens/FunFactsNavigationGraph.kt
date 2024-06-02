@@ -35,16 +35,8 @@ fun FunFactsNavigationGraph(userInputViewModel: UserInputViewModel = viewModel()
             WelcomeScreen(username, languajeSelected,navController)
         }
 
-        composable("${Routes.Trainings_Screen}/{${Routes.USER_NAME}}",
-            arguments = listOf(
-                navArgument(name = Routes.USER_NAME) { type = NavType.StringType }
-            )
-        ) {
-            val username = it?.arguments?.getString(Routes.USER_NAME)
-
-            if (username != null) {
-                TrainingsScreen(username, navController)
-            }
+        composable(Routes.Trainings_Screen) {
+            TrainingsScreen()
         }
         composable(Routes.PRs_Screen) { PRsScreen() }
         composable(Routes.Weight_Calculator_Screen) { WeightCalculatorScreen() }
