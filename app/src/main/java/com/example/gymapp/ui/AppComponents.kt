@@ -26,8 +26,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 
-
+@Composable
+fun BackButtonComponent(navController: NavHostController) {
+    Button(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {
+            navController.popBackStack()
+        }
+    ) {
+        Text(text = "Volver")
+    }
+}
 @Composable
 fun TopBar(value: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
