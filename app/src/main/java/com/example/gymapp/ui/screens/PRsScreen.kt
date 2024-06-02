@@ -9,10 +9,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import com.example.gymapp.ui.BackButtonComponent
 import com.example.gymapp.ui.TopBar
 
 @Composable
-fun PRsScreen() {
+fun PRsScreen(navController: NavHostController) {
     Surface(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -26,6 +28,7 @@ fun PRsScreen() {
 
             Spacer(modifier = Modifier.size(20.dp))
 
+            BackButtonComponent(navController = navController)
 
         }
 
