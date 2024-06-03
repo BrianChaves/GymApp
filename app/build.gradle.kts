@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
     implementation(libs.androidx.material3)
-    implementation("androidx.compose.material:material-icons-extended:1.6.7")
     implementation(libs.androidx.constraintlayout.core)
     implementation("com.google.code.gson:gson:2.11.0")
     testImplementation(libs.junit)
