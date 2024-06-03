@@ -1,22 +1,35 @@
 package com.example.gymapp
 import android.content.ContentValues
 import android.content.Context
+import android.content.SharedPreferences
 import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.util.Log
 import com.example.gymapp.data.Exercise
 import com.example.gymapp.data.Training
 import com.example.gymapp.data.User
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class AdminOpenHelper(
-    context: Context?,
-    nombre: String?,
-    factory: SQLiteDatabase.CursorFactory?,
-    version: Int
-) : SQLiteOpenHelper(context, nombre, factory, version) {
+    context: Context
+) : SQLiteOpenHelper(context, nombre, null, version) {
+
+    companion object {
+        private const val nombre = "gymDB"
+        private const val version = 1
+
+        @Volatile
+        private var instance : AdminOpenHelper? = null
+
+        fun getInstance(context: Context): AdminOpenHelper {
+            return instance ?: synchronized(this) {
+                instance ?: AdminOpenHelper(context.applicationContext).also { instance = it }
+            }
+        }
+    }
+
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL("CREATE TABLE usuarios (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -27,12 +40,12 @@ class AdminOpenHelper(
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "nombre TEXT NOT NULL UNIQUE, " +
                 "tipo TEXT)")
-        db?.execSQL("CREATE TABLE entrenamientos (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "dia INTEGER NOT NULL, " +
-                "usuario TEXT NOT NULL, " +
-                "lista_ejercicios TEXT, " +
-                "FOREIGN KEY (usuario) REFERENCES usuarios (usuario))")
+//        db?.execSQL("CREATE TABLE entrenamientos (" +
+//                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+//                "dia INTEGER NOT NULL, " +
+//                "usuario TEXT NOT NULL, " +
+//                "lista_ejercicios TEXT, " +
+//                "FOREIGN KEY (usuario) REFERENCES usuarios (usuario))")
         db?.execSQL("CREATE TABLE records (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "ejercicio INTEGER NOT NULL, " +
@@ -46,11 +59,8 @@ class AdminOpenHelper(
         admin.put("contrasena", "123") // Replace with a secure hashing mechanism
         db!!.insert("usuarios", null, admin)
 
-        generateTrainingsByUser("admin")
-
-        loadUsers()
-        loadExercises()
-
+//        loadUsers()
+//        loadExercises()
     }
 
 
@@ -131,77 +141,112 @@ class AdminOpenHelper(
         return list
     }
 
-    private fun insertTraining(training: Training) {
-        val db = this.writableDatabase
-        val contentValues = ContentValues()
-        val jsonIntList = Gson().toJson(training.exercises)
+//    private fun insertTraining(training: Training) {
+//        val db = this.writableDatabase
+//        val intListString = training.exercises.joinToString(",")
+//        val contentValues = ContentValues()
+////        val jsonIntList = Gson().toJson(training.exercises)
+//
+////        contentValues.put("id", training.trainingId)
+//        contentValues.put("dia", training.dayOfWeek)
+//        contentValues.put("usuario", training.username)
+//        contentValues.put("lista_ejercicios", intListString)
+//        db.insert("entrenamientos", null, contentValues)
+//        db.close()
+//    }
+//
+//    private fun saveIntList(intList: List<Int>) {
+//        val db = this.writableDatabase
+//        val intListString = intList.joinToString(",")
+//        val contentValues = ContentValues()
+//        contentValues.put("lista_ejercicios", intListString)
+//        db.insert("entrenamientos", null, contentValues)
+//        db.close()
+//    }
+//
+//    private fun getIntList(dayOfWeek: Int, userId: String): List<Int>? {
+//        val db = this.readableDatabase
+//        val cursor = db.query(
+//            "entrenamientos",
+//            arrayOf("lista_ejercicios"),
+//            "dia = ? AND usuario = ?",
+//            arrayOf(dayOfWeek.toString(), userId),
+//            null, null, null
+//        )
+//
+//        var intList: List<Int>? = null
+//        if (cursor.moveToFirst()) {
+//            val intListString = cursor.getString(
+//                cursor.getColumnIndexOrThrow("lista_ejercicios")
+//            )
+//            intList = intListString.split(",").map { it.toInt() }
+//        }
+//        cursor.close()
+//        db.close()
+//        return intList
+//    }
+//
+//    fun getExerciseListForTraining(dayOfWeek: Int, userId: String): List<Exercise> {
+//        val intList : List<Int>? = getIntList(dayOfWeek, userId)
+//        val exercises = mutableListOf<Exercise>()
+//
+//        if (intList != null) {
+//            for (ints in intList) { exercises.add(getExerciseById(ints)) }
+//        }
+//        return exercises
+//    }
+//
+//    fun getAllTrainings() : List<Training> {
+//        val db = this.readableDatabase
+//        val cursor = db.rawQuery("SELECT * FROM ejercicios", null)
+//        val list = mutableListOf<Training>()
+////        val exerciseIdList = mutableListOf<Int>()
+//        val training = Training(0, 0, "", emptyList())
+//
+//        try {
+//            if (cursor.moveToFirst()) {
+//                while (cursor.moveToNext()) {
+//                    training.trainingId = cursor.getInt(0)
+//                    training.dayOfWeek = cursor.getInt(1)
+//                    training.username = cursor.getString(2)
+//                    training.exercises = getIntList(training.dayOfWeek, training.username)!!
+//                    list.add(training)
+//                }
+//            }
+//            cursor.close()
+//        } catch (_: SQLException) {
+//
+//        }
+//        db.close()
+//
+//        return list
+//    }
 
-//        contentValues.put("id", training.trainingId)
-        contentValues.put("dia", training.dayOfWeek)
-        contentValues.put("usuario", training.username)
-        contentValues.put("lista_ejercicios", jsonIntList)
+    fun saveTrainings(appContext: Context?, username: String, trainings : List<Training>) {
+        val sharedPreferences: SharedPreferences = appContext!!.getSharedPreferences("trainings_prefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
 
-        db!!.insert("entrenamientos", null, contentValues)
-        db.close()
+        val gson = Gson()
+        val jsonTrainings = gson.toJson(trainings)
+
+        editor.putString(username, jsonTrainings)
+        editor.apply()
     }
 
-    private fun getColumnList(dayOfWeek: Int, userId: String): List<Int> {
-        val db = this.readableDatabase
-        val cursor = db.query(
-            "entrenamientos",
-            arrayOf("lista_ejercicios"),
-            "dia = ? AND usuario = ?",
-            arrayOf(dayOfWeek.toString(), userId),
-            null, null, null
-        )
+    fun loadTrainings(appContext: Context?, username: String): List<Training>? {
+        val sharedPreferences: SharedPreferences = appContext!!.getSharedPreferences("trainings_prefs", Context.MODE_PRIVATE)
+        val jsonTrainings = sharedPreferences.getString(username, null)
 
-        var intList: List<Int> = mutableListOf()
-        if (cursor.moveToFirst()) {
-            val jsonIntList = cursor.getString(
-                cursor.getColumnIndexOrThrow("lista_ejercicios")
-            )
-            intList = Gson().fromJson(jsonIntList, Array<Int>::class.java).toList()
+        return if (jsonTrainings != null) {
+            val gson = Gson()
+            val type = object : TypeToken<List<Training>>() {}.type
+            gson.fromJson(jsonTrainings, type)
+        } else {
+            null
         }
-        cursor.close()
-        db.close()
-        return intList
     }
 
-    fun getExerciseListForTraining(dayOfWeek: Int, userId: String): List<Exercise> {
-        val intList : List<Int> = getColumnList(dayOfWeek, userId)
-        val exercises = mutableListOf<Exercise>()
-
-        for (ints in intList) { exercises.add(getExerciseById(ints)) }
-        return exercises
-    }
-
-    fun getAllTrainings() : List<Training> {
-        val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM ejercicios", null)
-        val list = mutableListOf<Training>()
-//        val exerciseIdList = mutableListOf<Int>()
-        val training = Training(0, 0, "", emptyList())
-
-        try {
-            if (cursor.moveToFirst()) {
-                while (cursor.moveToNext()) {
-                    training.trainingId = cursor.getInt(0)
-                    training.dayOfWeek = cursor.getInt(1)
-                    training.username = cursor.getString(2)
-                    training.exercises = getColumnList(training.dayOfWeek, training.username)
-                    list.add(training)
-                }
-            }
-            cursor.close()
-        } catch (_: SQLException) {
-
-        }
-        db.close()
-
-        return list
-    }
-
-    private fun loadExercises() {
+    fun loadExercises() {
         val list = listOf(
             // Upper body exercises
             Exercise(1, "Push Up", "Upper body"),
@@ -290,7 +335,7 @@ class AdminOpenHelper(
         }
     }
 
-    private fun loadUsers() {
+    fun loadUsers() {
         val list = listOf(
             User(1, "John Doe", "johndoe", "password123"),
             User(2, "Jane Smith", "janesmith", "password123"),
@@ -315,63 +360,6 @@ class AdminOpenHelper(
         )
         for(user in list) {
             insertUser(user)
-            generateTrainingsByUser(user.username)
-        }
-    }
-
-    private fun generateTrainingsByUser(username : String) {
-        val exerciseIdRange = 1..70
-        fun getRandomExercises(): List<Int> {
-            return exerciseIdRange.shuffled().take(20)
-        }
-
-        val list = listOf(
-            Training(
-                trainingId = 0,
-                dayOfWeek = 1, // Sunday
-                username = username,
-                exercises = getRandomExercises()
-            ),
-            Training(
-                trainingId = 0,
-                dayOfWeek = 2, // Monday
-                username = username,
-                exercises = getRandomExercises()
-            ),
-            Training(
-                trainingId = 0,
-                dayOfWeek = 3, // Tuesday
-                username = username,
-                exercises = getRandomExercises()
-            ),
-            Training(
-                trainingId = 0,
-                dayOfWeek = 4, // Wednesday
-                username = username,
-                exercises = getRandomExercises()
-            ),
-            Training(
-                trainingId = 0,
-                dayOfWeek = 5, // Thursday
-                username = username,
-                exercises = getRandomExercises()
-            ),
-            Training(
-                trainingId = 0,
-                dayOfWeek = 6, // Friday
-                username = username,
-                exercises = getRandomExercises()
-            ),
-            Training(
-                trainingId = 0,
-                dayOfWeek = 7, // Saturday
-                username = username,
-                exercises = getRandomExercises()
-            )
-        )
-
-        for (training in list) {
-            insertTraining(training)
         }
     }
 }

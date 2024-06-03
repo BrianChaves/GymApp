@@ -36,9 +36,9 @@ fun FunFactsNavigationGraph(userInputViewModel: UserInputViewModel = viewModel()
         }
 
         composable(Routes.Trainings_Screen) {
-            TrainingsScreen()
+            TrainingsScreen(navController)
         }
         composable(Routes.PRs_Screen) { PRsScreen(navController) }
-        composable(Routes.Weight_Calculator_Screen) { WeightCalculatorScreen() }
+        composable(Routes.Weight_Calculator_Screen) { WeightCalculatorScreen(navController) }
     }
 }
