@@ -10,7 +10,7 @@ data class Training(
     var trainingId: Int,
     // String of integer for a day of week (1 to 7), starting Sunday = 1, ending Saturday = 7
     var dayOfWeek: Int,
-    var username: String,
+//    var username: String,
     //List of 20 integers, each is a different exerciseId
     var exercises: List<Int>
 )

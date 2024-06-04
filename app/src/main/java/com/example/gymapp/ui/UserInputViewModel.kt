@@ -14,7 +14,7 @@ class UserInputViewModel(application: Application) : AndroidViewModel(applicatio
     private val _uiState = MutableStateFlow(UserInputScreenState())
     val uiState: StateFlow<UserInputScreenState> = _uiState
 
-    private val dbHelper: AdminOpenHelper = AdminOpenHelper(application, "gymDB", null, 1)
+    private val dbHelper = AdminOpenHelper.getInstance(application)
 
     fun onEvent(event: UserDataUiEvents) {
         when (event) {

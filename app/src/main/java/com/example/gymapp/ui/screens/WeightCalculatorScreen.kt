@@ -2,6 +2,7 @@ package com.example.gymapp.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import com.example.gymapp.ui.BackButtonComponent
 
 data class Weight(val value: Double, val name: String)
 
@@ -57,7 +63,7 @@ fun calculateWeightDistribution(targetWeight: Double): Map<String, Int> {
 }
 
 @Composable
-fun WeightCalculatorScreen() {
+fun WeightCalculatorScreen(navController: NavHostController) {
     var inputWeight by remember { mutableStateOf("") }
     var result by remember { mutableStateOf<Map<String, Int>?>(null) }
     var errorMessage by remember { mutableStateOf("") }
@@ -72,7 +78,7 @@ fun WeightCalculatorScreen() {
         OutlinedTextField(
             value = inputWeight,
             onValueChange = { inputWeight = it },
-            label = { Text(text = "Enter desired weight (lbs)") },
+            label = { Text(text = "Ingrese el peso deseado (lbs)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
@@ -87,7 +93,7 @@ fun WeightCalculatorScreen() {
                     errorMessage = ""
                 } else {
                     result = null
-                    errorMessage = "Please enter a valid weight greater than or equal to 45 lbs."
+                    errorMessage = "Ingrese un peso de valor igual o mayor a 45 lbs."
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -101,16 +107,58 @@ fun WeightCalculatorScreen() {
             Text(errorMessage, color = MaterialTheme.colorScheme.error)
         }
         result?.let { WeightDistributionList(result = it) }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        BackButtonComponent(navController = navController)
     }
 }
 
 @Composable
 fun WeightDistributionList(result: Map<String, Int>) {
-    Text("Bar: 45 lbs")
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row {
+            Text(
+                text = "Barra: 45 lbs",
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+    Divider()
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(result.entries.toList()) { entry ->
-            Text("Plate: ${entry.key} lbs: ${entry.value}")
+            WeightItem(key = entry.key, value = entry.value)
             Divider()
+        }
+    }
+}
+
+@Composable
+fun WeightItem(key : String, value : Int) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row {
+            Text(
+                text = key,
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = value.toString(),
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
