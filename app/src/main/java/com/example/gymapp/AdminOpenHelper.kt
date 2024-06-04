@@ -14,11 +14,11 @@ import com.google.gson.reflect.TypeToken
 
 class AdminOpenHelper(
     context: Context
-) : SQLiteOpenHelper(context, nombre, null, version) {
+) : SQLiteOpenHelper(context, NOMBRE, null, VERSION) {
 
     companion object {
-        private const val nombre = "gymDB"
-        private const val version = 1
+        private const val NOMBRE = "gymDB"
+        private const val VERSION = 1
 
         @Volatile
         private var instance : AdminOpenHelper? = null
@@ -242,7 +242,7 @@ class AdminOpenHelper(
             val type = object : TypeToken<List<Training>>() {}.type
             gson.fromJson(jsonTrainings, type)
         } else {
-            null
+            emptyList()
         }
     }
 

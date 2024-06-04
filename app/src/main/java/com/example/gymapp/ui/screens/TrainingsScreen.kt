@@ -29,88 +29,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.gymapp.AdminOpenHelper
+import com.example.gymapp.TrainingsViewModel
 import com.example.gymapp.data.Exercise
-import com.example.gymapp.data.Training
 import com.example.gymapp.ui.BackButtonComponent
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-fun generateTrainingsByUser(username: String) : List<Training>{
-    val exerciseIdRange = 1..70
-    fun getRandomExercises(): List<Int> {
-        return exerciseIdRange.shuffled().take(20)
-    }
-
-    return listOf(
-        Training(
-            trainingId = username.hashCode(),
-            dayOfWeek = 1, // Sunday
-            exercises = getRandomExercises()
-        ),
-        Training(
-            trainingId = username.hashCode(),
-            dayOfWeek = 2, // Monday
-            exercises = getRandomExercises()
-        ),
-        Training(
-            trainingId = username.hashCode(),
-            dayOfWeek = 3, // Tuesday
-            exercises = getRandomExercises()
-        ),
-        Training(
-            trainingId = username.hashCode(),
-            dayOfWeek = 4, // Wednesday
-            exercises = getRandomExercises()
-        ),
-        Training(
-            trainingId = username.hashCode(),
-            dayOfWeek = 5, // Thursday
-            exercises = getRandomExercises()
-        ),
-        Training(
-            trainingId = username.hashCode(),
-            dayOfWeek = 6, // Friday
-            exercises = getRandomExercises()
-        ),
-        Training(
-            trainingId = username.hashCode(),
-            dayOfWeek = 7, // Saturday
-            exercises = getRandomExercises()
-        )
-    )
-    
-}
-fun getExercisesForDay(context: Context, dayOfWeek: Int, username: String): List<Exercise> {
-    val dbHelper = AdminOpenHelper.getInstance(context)
-//    val trainingsList : List<Training> = dbHelper.loadTrainings(context, username)!!
-    val allExercisesList : List<Exercise> = dbHelper.getAllExercises()
-    val exercisesList = mutableListOf<Exercise>()
-    val trainingsList = generateTrainingsByUser(username)
-//    if (trainingsList.isEmpty()) {
-//        generateTrainingsByUser(username)
-//        dbHelper.saveTrainings(context, username, trainingsList)
-//    } else {
-//        for (training in trainingsList) {
-//            if (training.dayOfWeek == dayOfWeek) training.exercises.forEach { int -> exercisesList.add(dbHelper.getExerciseById(int)) }
-//        }
-//    }
-    for (training in trainingsList) {
-        if (training.dayOfWeek == dayOfWeek) {
-            training.exercises.forEach { exerciseId -> exercisesList.add(allExercisesList[exerciseId]) }
-        }
-    }
-    return exercisesList
-}
-
 @Composable
 fun TrainingsScreen(navController: NavHostController) {
-    var selectedDate by remember { mutableStateOf("") }
-    var exercises by remember { mutableStateOf<List<Exercise>?>(null) }
     val context = LocalContext.current
+    var selectedDate by remember { mutableStateOf("") }
+    val viewModel = TrainingsViewModel(context)
     val sharedPreferences = context.getSharedPreferences("loginPrefs", Context.MODE_PRIVATE)
     val username by remember { mutableStateOf(sharedPreferences.getString("username", "")) }
+    var exercises = viewModel.exercisesList
 
     val calendar = Calendar.getInstance()
     val year = calendar.get(Calendar.YEAR)
@@ -155,14 +88,16 @@ fun TrainingsScreen(navController: NavHostController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-//        Button(
-//            onClick = { exercises = getExercisesForDay(context, dayOfWeek, username!!) },
-//            modifier = Modifier.align(Alignment.CenterHorizontally)
-//        ) {
-//            Text("Mostrar ejercicios")
-//        }
+        Button(
+            onClick = {
+                viewModel.getExercisesForDay(context, dayOfWeek, username!!)
+                      },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text("Mostrar ejercicios")
+        }
 
-        exercises?.let { ExerciseDisplayList(exercises = it) }
+        ExerciseDisplayList(exercises = exercises)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -172,7 +107,7 @@ fun TrainingsScreen(navController: NavHostController) {
 
 @Composable
 fun ExerciseDisplayList(exercises : List<Exercise>) {
-    if (exercises.isNullOrEmpty()) {
+    if (exercises.isEmpty()) {
         Text(text = "No hay ejercicios para fecha: seleccionada")
     } else {
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
