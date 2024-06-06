@@ -1,5 +1,6 @@
 package com.example.gymapp
 
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent

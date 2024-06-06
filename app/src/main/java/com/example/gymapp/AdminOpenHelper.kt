@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import com.example.gymapp.data.Exercise
 import com.example.gymapp.data.Training
 import com.example.gymapp.data.User
@@ -31,22 +32,22 @@ class AdminOpenHelper(
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
-        db?.execSQL("CREATE TABLE usuarios (" +
+        db?.execSQL("CREATE TABLE IF NOT EXISTS usuarios (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "nombre TEXT NOT NULL, " +
                 "usuario TEXT NOT NULL UNIQUE, " +
                 "contrasena TEXT NOT NULL)")
-        db?.execSQL("CREATE TABLE ejercicios (" +
+        db?.execSQL("CREATE TABLE IF NOT EXISTS ejercicios (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "nombre TEXT NOT NULL UNIQUE, " +
-                "tipo TEXT)")
+                "nombre TEXT NOT NULL, " +
+                "tipo TEXT NOT NULL)")
 //        db?.execSQL("CREATE TABLE entrenamientos (" +
 //                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
 //                "dia INTEGER NOT NULL, " +
 //                "usuario TEXT NOT NULL, " +
 //                "lista_ejercicios TEXT, " +
 //                "FOREIGN KEY (usuario) REFERENCES usuarios (usuario))")
-        db?.execSQL("CREATE TABLE records (" +
+        db?.execSQL("CREATE TABLE IF NOT EXISTS records (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "ejercicio INTEGER NOT NULL, " +
                 "record TEXT," +
@@ -65,8 +66,9 @@ class AdminOpenHelper(
 
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        TODO("Not yet implemented")
+        TODO()
     }
+
     fun checkUser(username: String, password: String): Boolean {
         val db = this.readableDatabase
         val cursor: Cursor = db.rawQuery("SELECT * FROM usuarios WHERE usuario = ? AND contrasena = ?", arrayOf(username, password))
@@ -76,7 +78,7 @@ class AdminOpenHelper(
         return exists
     }
 
-    private fun insertUser(user : User) {
+    private fun insertUser(user : User) : Long {
         val db = this.writableDatabase
         val contentValues = ContentValues()
 
@@ -85,11 +87,12 @@ class AdminOpenHelper(
         contentValues.put("usuario", user.username)
         contentValues.put("contrasena", user.password)
 
-        db!!.insert("usuarios", null, contentValues)
+        val int = db!!.insertWithOnConflict("usuarios", null, contentValues, SQLiteDatabase.CONFLICT_REPLACE)
         db.close()
+        return int
     }
 
-    private fun insertExercise(exercise: Exercise) {
+    private fun insertExercise(exercise: Exercise) : Long {
         val db = this.writableDatabase
         val contentValues = ContentValues()
 
@@ -97,8 +100,9 @@ class AdminOpenHelper(
         contentValues.put("nombre", exercise.exerciseName)
         contentValues.put("tipo", exercise.type)
 
-        db!!.insert("ejercicios", null, contentValues)
+        val int = db!!.insertWithOnConflict("ejercicios", null, contentValues, SQLiteDatabase.CONFLICT_REPLACE)
         db.close()
+        return int
     }
 
     fun getExerciseById(exerciseId: Int) : Exercise {
@@ -331,7 +335,8 @@ class AdminOpenHelper(
 
         )
         for(exercise in list) {
-            insertExercise(exercise)
+            val int = insertExercise(exercise)
+            Log.i("FunFactApp", "Insercion Ejercicio(${exercise.exerciseName}): $int")
         }
     }
 
@@ -359,7 +364,8 @@ class AdminOpenHelper(
             User(20, "Susan Scott", "susanscott", "password123")
         )
         for(user in list) {
-            insertUser(user)
+            val int = insertUser(user)
+            Log.i("FunFactApp", "Insercion Usuario(${user.username}): $int")
         }
     }
 }
