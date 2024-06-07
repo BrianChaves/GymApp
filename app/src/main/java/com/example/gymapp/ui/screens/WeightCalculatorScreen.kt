@@ -25,11 +25,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.gymapp.ui.BackButtonComponent
+import com.example.gymapp.ui.theme.GymAppTheme
 
 data class Weight(val value: Double, val name: String)
 
@@ -98,7 +102,7 @@ fun WeightCalculatorScreen(navController: NavHostController) {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Calculate")
+            Text("Calcular")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -126,7 +130,8 @@ fun WeightDistributionList(result: Map<String, Int>) {
             Text(
                 text = "Barra: 45 lbs",
                 modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -150,15 +155,32 @@ fun WeightItem(key : String, value : Int) {
         Row {
             Text(
                 text = key,
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium
+                textAlign = TextAlign.Start,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.Top),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = value.toString(),
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium
+                textAlign = TextAlign.End,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.Bottom),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun WeightCalculatorScreenPreview() {
+    val context = LocalContext.current
+    GymAppTheme {
+        WeightCalculatorScreen(navController = NavHostController(context))
     }
 }
