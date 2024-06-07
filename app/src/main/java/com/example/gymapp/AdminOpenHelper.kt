@@ -40,8 +40,9 @@ class AdminOpenHelper(
         db?.execSQL("CREATE TABLE IF NOT EXISTS ejercicios (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "nombre TEXT NOT NULL, " +
-                "tipo TEXT NOT NULL)")
-//        db?.execSQL("CREATE TABLE entrenamientos (" +
+                "tipo TEXT NOT NULL, " +
+                "record TEXT)")
+        //        db?.execSQL("CREATE TABLE entrenamientos (" +
 //                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
 //                "dia INTEGER NOT NULL, " +
 //                "usuario TEXT NOT NULL, " +
@@ -62,6 +63,27 @@ class AdminOpenHelper(
 
 //        loadUsers()
 //        loadExercises()
+    }
+    fun getExerciseByName(exerciseName: String): Exercise? {
+        val db = this.readableDatabase
+        val cursor: Cursor = db.rawQuery("SELECT * FROM ejercicios WHERE nombre = ?", arrayOf(exerciseName))
+        var exercise: Exercise? = null
+        if (cursor.moveToFirst()) {
+            exercise = Exercise(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3))
+        }
+        cursor.close()
+        db.close()
+        return exercise
+    }
+
+    fun updateExerciseRecord(exercise: Exercise): Int {
+        val db = this.writableDatabase
+        val contentValues = ContentValues().apply {
+            put("record", exercise.record)
+        }
+        val result = db.update("ejercicios", contentValues, "id = ?", arrayOf(exercise.exerciseId.toString()))
+        db.close()
+        return result
     }
 
 
@@ -99,6 +121,8 @@ class AdminOpenHelper(
         //contentValues.put("id", exercise.exerciseId)
         contentValues.put("nombre", exercise.exerciseName)
         contentValues.put("tipo", exercise.type)
+        contentValues.put("record", exercise.record)
+
 
         val int = db!!.insertWithOnConflict("ejercicios", null, contentValues, SQLiteDatabase.CONFLICT_REPLACE)
         db.close()

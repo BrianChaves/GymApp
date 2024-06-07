@@ -3,7 +3,9 @@ package com.example.gymapp.data
 data class Exercise(
     var exerciseId: Int,
     var exerciseName: String,
-    var type: String
+    var type: String,
+    var record: String? = null
+
 )
 
 data class Training(
