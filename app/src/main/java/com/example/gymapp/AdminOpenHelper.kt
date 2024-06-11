@@ -50,9 +50,11 @@ class AdminOpenHelper(
 //                "FOREIGN KEY (usuario) REFERENCES usuarios (usuario))")
         db?.execSQL("CREATE TABLE IF NOT EXISTS records (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "ejercicio INTEGER NOT NULL, " +
-                "record TEXT," +
-                "FOREIGN KEY (ejercicio) REFERENCES ejercicios (id))")
+                "usuario_id INTEGER NOT NULL, " +
+                "ejercicio_id INTEGER NOT NULL, " +
+                "record TEXT, " +
+                "FOREIGN KEY (usuario_id) REFERENCES usuarios(id), " +
+                "FOREIGN KEY (ejercicio_id) REFERENCES ejercicios(id))")
 
         // Insertar clientes quemados
         val admin = ContentValues()
@@ -75,6 +77,7 @@ class AdminOpenHelper(
         db.close()
         return exercise
     }
+
 
     fun updateExerciseRecord(exercise: Exercise): Int {
         val db = this.writableDatabase
@@ -156,9 +159,10 @@ class AdminOpenHelper(
 
         try {
             if (cursor.moveToFirst()) {
-                while (cursor.moveToNext()) {
-                    list.add(Exercise(cursor.getInt(0), cursor.getString(1), cursor.getString(2)))
-                }
+                do {
+                    val exercise = Exercise(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3))
+                    list.add(exercise)
+                } while (cursor.moveToNext())
             }
             cursor.close()
         } catch (_: SQLException) {
@@ -168,6 +172,7 @@ class AdminOpenHelper(
 
         return list
     }
+
 
 //    private fun insertTraining(training: Training) {
 //        val db = this.writableDatabase

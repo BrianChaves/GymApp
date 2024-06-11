@@ -15,9 +15,10 @@ class PRsViewModel(context: Context) : ViewModel() {
 
     fun loadExercises() {
         val exerciseNames = listOf("Bench Press", "Shoulder Press", "Snatch", "Clean", "Deadlift")
-        val loadedExercises = exerciseNames.mapNotNull { dbHelper.getExerciseByName(it) }
+        val loadedExercises = dbHelper.getAllExercises().filter { it.exerciseName in exerciseNames }
         _exercises.value = loadedExercises
     }
+
 
     fun updateRecord(exercise: Exercise, newRecord: String) {
         exercise.record = newRecord
