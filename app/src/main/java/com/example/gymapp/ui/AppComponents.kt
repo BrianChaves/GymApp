@@ -99,7 +99,7 @@ fun TextFieldPasswordComponent(
             onTextChanged(it)
         },
         placeholder = {
-            Text(text = "Enter your Password", fontSize = 18.sp)
+            Text(text = "Ingrese su contraseña", fontSize = 18.sp)
         },
         visualTransformation = if (showPassword) {
             VisualTransformation.None
@@ -148,7 +148,7 @@ fun TextFieldComponent(
             onTextChanged(it)
         },
         placeholder = {
-            Text(text = "Enter your name", fontSize = 18.sp)
+            Text(text = "Ingrese su usuario", fontSize = 18.sp)
         },
         textStyle = TextStyle.Default.copy(fontSize = 24.sp),
         keyboardOptions = KeyboardOptions(
