@@ -10,4 +10,5 @@ object Routes {
     // Argumentos de navegación
     const val USER_NAME = "NAME"
     const val PASSWORD_SELECTED = "PASSWORD_SELECTED"
+    const val Register_Screen="Register_Screen"
 }

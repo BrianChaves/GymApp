@@ -33,4 +33,5 @@ class UserInputViewModel(application: Application) : AndroidViewModel(applicatio
             if (isValid) onSuccess() else onFailure()
         }
     }
+
 }

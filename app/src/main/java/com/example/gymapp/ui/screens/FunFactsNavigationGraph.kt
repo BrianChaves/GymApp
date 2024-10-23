@@ -19,7 +19,9 @@ fun FunFactsNavigationGraph(userInputViewModel: UserInputViewModel = viewModel()
         composable(Routes.User_Input_Screen) {
             UserInputScreen(userInputViewModel, showWelcomeScreen = {
                 navController.navigate(Routes.Welcome_Screen + "/${it.first}/${it.second}")
-            }
+            },
+                navController = navController // Pasar navController
+
             )
         }
 
@@ -37,6 +39,10 @@ fun FunFactsNavigationGraph(userInputViewModel: UserInputViewModel = viewModel()
 
         composable(Routes.Trainings_Screen) {
             TrainingsScreen(navController)
+        }
+        // Pantalla de registro
+        composable(Routes.Register_Screen) {
+            UserRegisterScreen(navController = navController) // Pasar el navController aquí
         }
         composable(Routes.PRs_Screen) { PRsScreen(navController) }
         composable(Routes.Weight_Calculator_Screen) { WeightCalculatorScreen(navController) }

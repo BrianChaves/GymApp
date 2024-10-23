@@ -78,6 +78,23 @@ class AdminOpenHelper(
         return exercise
     }
 
+    fun registerUser(userName: String, password: String): Boolean {
+        val db = this.writableDatabase
+        val contentValues = ContentValues().apply {
+            put("nombre", userName)
+            put("usuario", userName)
+            put("contrasena", password)
+        }
+
+        return try {
+            db.insertOrThrow("usuarios", null, contentValues)
+            db.close()
+            true
+        } catch (e: SQLException) {
+            db.close()
+            false
+        }
+    }
 
     fun updateExerciseRecord(exercise: Exercise): Int {
         val db = this.writableDatabase

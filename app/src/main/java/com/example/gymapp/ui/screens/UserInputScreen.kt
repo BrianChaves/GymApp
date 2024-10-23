@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.gymapp.R
 import com.example.gymapp.data.UserDataUiEvents
 import com.example.gymapp.ui.ButtonComponent
@@ -34,7 +35,8 @@ import com.example.gymapp.ui.UserInputViewModel
 @Composable
 fun UserInputScreen(
     userInputViewModel: UserInputViewModel = viewModel(),
-    showWelcomeScreen: (valuesPair: Pair<String, String>) -> Unit
+    showWelcomeScreen: (valuesPair: Pair<String, String>) -> Unit,
+    navController: NavController // Aquí pasamos el navController
 
 ) {
     val uiState = userInputViewModel.uiState.collectAsState().value
@@ -103,7 +105,9 @@ fun UserInputScreen(
             // Botón de registrarse
             Button(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                onClick = { }
+                onClick = {
+                    navController.navigate(Routes.Register_Screen)
+                }
             ) {
                 TextComponent(
                     textValue = "Registrarse",
