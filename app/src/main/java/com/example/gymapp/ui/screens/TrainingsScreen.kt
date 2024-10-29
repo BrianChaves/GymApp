@@ -41,7 +41,9 @@ import com.example.gymapp.ui.BackButtonComponent
 import com.example.gymapp.ui.TrainingsViewModel
 import com.example.gymapp.ui.theme.GymAppTheme
 import kotlinx.coroutines.launch
-
+import androidx.compose.material3.Checkbox
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 @Composable
 fun TrainingsScreen(navController: NavHostController) {
     val context = LocalContext.current
@@ -63,7 +65,7 @@ fun TrainingsScreen(navController: NavHostController) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row {
-                ExerciseDisplayField(viewModel = viewModel) {
+                ExerciseDisplayField(viewModel = viewModel, navController = navController) {
                     coroutineScope.launch { viewModel.onShowExercisesSelected() }
                 }
             }
@@ -124,7 +126,7 @@ fun DatePickerField(viewModel: TrainingsViewModel, onDateChange: () -> Unit) {
 }
 
 @Composable
-fun ExerciseDisplayField(viewModel: TrainingsViewModel, onShowExercisesSelected: () -> Unit) {
+fun ExerciseDisplayField(viewModel: TrainingsViewModel, navController: NavHostController, onShowExercisesSelected: () -> Unit) {
     val exercises by viewModel.exercisesList.observeAsState(initial = emptyList())
 
     Column {
@@ -146,53 +148,73 @@ fun ExerciseDisplayField(viewModel: TrainingsViewModel, onShowExercisesSelected:
         Spacer(modifier = Modifier.height(16.dp))
         Divider()
         Spacer(modifier = Modifier.height(16.dp))
-        if (exercises.isEmpty()) {
-            Text(text = "No hay ejercicios para fecha seleccionada",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                items(exercises) { exercise ->
+
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            if (exercises.isEmpty()) {
+                item {
+                    Text(
+                        text = "No hay ejercicios para la fecha seleccionada",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                }
+            } else {
+                items(exercises.take(10)) { exercise ->
                     ExerciseItem(exercise)
                 }
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Divider()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { navController.popBackStack() },
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                            .height(48.dp)
+                    ) {
+                        Text("Regresar")
+                    }
+                }
             }
-            Divider()
         }
     }
 }
 
 @Composable
 fun ExerciseItem(exercise: Exercise) {
+    val isChecked = remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Row {
-            Text(
-                text = "Nombre: ${exercise.exerciseName}",
-                textAlign = TextAlign.Start,
-                modifier = Modifier.padding(16.dp)
-                    .align(Alignment.Top),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Checkbox(
+                checked = isChecked.value,
+                onCheckedChange = { isChecked.value = it }
             )
             Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text = "Tipo: ${exercise.type}",
-                textAlign = TextAlign.End,
-                modifier = Modifier.padding(16.dp)
-                    .align(Alignment.Bottom),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold
-            )
+            Column {
+                Text(
+                    text = "Nombre: ${exercise.exerciseName}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Tipo: ${exercise.type}",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

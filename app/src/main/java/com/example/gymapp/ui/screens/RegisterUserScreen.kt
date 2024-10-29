@@ -99,6 +99,20 @@ fun UserRegisterScreen(navController: NavController) {
                 )
             }
 
+            Spacer(modifier = Modifier.size(16.dp))
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    navController.popBackStack() // Esto lleva al usuario a la pantalla anterior
+                }
+            ) {
+                TextComponent(
+                    textValue = "Regresar",
+                    textSize = 18.sp,
+                    colorValue = Color.White
+                )
+            }
+
             Spacer(modifier = Modifier.size(8.dp))
         }
     }

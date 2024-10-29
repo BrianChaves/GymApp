@@ -61,7 +61,7 @@ class TrainingsViewModel(context: Context) : ViewModel() {
     private fun generateTrainingsByUser(username: String) : List<Training>{
         val exerciseIdRange = 1..70
         fun getRandomExercises(): List<Int> {
-            return exerciseIdRange.shuffled().take(20)
+            return exerciseIdRange.shuffled().take(10)
         }
 
         return listOf(
