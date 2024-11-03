@@ -42,6 +42,8 @@ import com.example.gymapp.ui.TrainingsViewModel
 import com.example.gymapp.ui.theme.GymAppTheme
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 @Composable
@@ -49,13 +51,21 @@ fun TrainingsScreen(navController: NavHostController) {
     val context = LocalContext.current
     val viewModel = remember { TrainingsViewModel(context) }
     val coroutineScope = rememberCoroutineScope()
+    val exercises by viewModel.exercisesList.observeAsState(initial = emptyList())
 
+    // State to track the progress
+    val checkedCount = remember { mutableStateOf(0) }
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         Column(Modifier.align(Alignment.TopCenter)) {
+            // Progress Bar Section
+            if (exercises.isNotEmpty()) {
+                ProgressBar(checkedCount.value, 6)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
             Row {
                 DatePickerField(viewModel = viewModel) {
                     coroutineScope.launch {
@@ -65,7 +75,7 @@ fun TrainingsScreen(navController: NavHostController) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row {
-                ExerciseDisplayField(viewModel = viewModel, navController = navController) {
+                ExerciseDisplayField(viewModel = viewModel, navController = navController, checkedCount = checkedCount) {
                     coroutineScope.launch { viewModel.onShowExercisesSelected() }
                 }
             }
@@ -88,7 +98,20 @@ fun BackButton(modifier: Modifier, navController: NavHostController) {
         BackButtonComponent(navController = navController)
     }
 }
-
+@Composable
+fun ProgressBar(checkedCount: Int, totalCount: Int) {
+    val progress = checkedCount / totalCount.toFloat()
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("Progreso: ${checkedCount}/${totalCount}")
+        LinearProgressIndicator(
+            progress = progress,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .padding(horizontal = 16.dp)
+        )
+    }
+}
 @Composable
 fun DatePickerField(viewModel: TrainingsViewModel, onDateChange: () -> Unit) {
     val selectedDate by viewModel.selectedDate.observeAsState(initial = "")
@@ -126,13 +149,14 @@ fun DatePickerField(viewModel: TrainingsViewModel, onDateChange: () -> Unit) {
 }
 
 @Composable
-fun ExerciseDisplayField(viewModel: TrainingsViewModel, navController: NavHostController, onShowExercisesSelected: () -> Unit) {
+fun ExerciseDisplayField(viewModel: TrainingsViewModel, navController: NavHostController, checkedCount: MutableState<Int>, onShowExercisesSelected: () -> Unit) {
     val exercises by viewModel.exercisesList.observeAsState(initial = emptyList())
 
     Column {
         Button(
             onClick = {
                 onShowExercisesSelected()
+
             },
             Modifier
                 .height(48.dp)
@@ -160,8 +184,8 @@ fun ExerciseDisplayField(viewModel: TrainingsViewModel, navController: NavHostCo
                     )
                 }
             } else {
-                items(exercises.take(10)) { exercise ->
-                    ExerciseItem(exercise)
+                items(exercises.take(6)) { exercise ->
+                    ExerciseItem(exercise, checkedCount)
                 }
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
@@ -183,7 +207,7 @@ fun ExerciseDisplayField(viewModel: TrainingsViewModel, navController: NavHostCo
 }
 
 @Composable
-fun ExerciseItem(exercise: Exercise) {
+fun ExerciseItem(exercise: Exercise, checkedCount: MutableState<Int>) {
     val isChecked = remember { mutableStateOf(false) }
 
     Card(
@@ -198,8 +222,11 @@ fun ExerciseItem(exercise: Exercise) {
         ) {
             Checkbox(
                 checked = isChecked.value,
-                onCheckedChange = { isChecked.value = it }
-            )
+                onCheckedChange = {
+                    isChecked.value = it
+                    // Update checked count based on the checkbox state
+                    checkedCount.value += if (it) 1 else -1
+                }            )
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
